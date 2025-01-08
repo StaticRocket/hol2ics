@@ -7,38 +7,7 @@ Python script to convert Microsoft outlook calendar file (.hol) to .ics
 import argparse
 import datetime
 import re
-
-# initiate argument parser
 import uuid
-
-parser = argparse.ArgumentParser(
-    description="convert an outlook calendar file (.hol) to an icalendar file (.ics)"
-)
-
-parser.add_argument("source_filename", help="outlook calendar source file (.hol)")
-
-parser.add_argument(
-    "--dest",
-    dest="destination_filename",
-    default=None,
-    help="optional destination filename (.ics)",
-)
-
-args = parser.parse_args()
-
-if not args.source_filename.lower().endswith("hol"):
-    raise ValueError("Source file has to end with the hol extension")
-
-source_filename = args.source_filename
-
-if args.destination_filename is not None:
-    if not args.destination_filename.lower().endswith("ics"):
-        raise ValueError("Destination file has to end with the ics extension")
-    destination_filename = args.destination_filename
-else:
-    destination_filename = source_filename.split(".")[0] + ".ics"
-
-print(f"Attempting to convert {source_filename} into {destination_filename}")
 
 
 def line_to_event_tuple(line):
@@ -86,26 +55,60 @@ def write_ics_file(events, destination_filename, title):
         out_file.writelines(ics_str)
 
 
-# TODO: there can be several section in a HOL file - the header and the count
-#  will tell us what to do - but do this later!
-header_pattern = r"\[(?P<title>.+)\]\s*(?P<count>[0-9]+)"
+def read_hol_file(source_filename):
+    # TODO: there can be several section in a HOL file - the header and the count
+    #  will tell us what to do - but do this later!
+    header_pattern = r"\[(?P<title>.+)\]\s*(?P<count>[0-9]+)"
 
-with open(source_filename, encoding="utf-16") as handler:
-    header = handler.readline()
-    # print(header)
-    matches = re.match(header_pattern, header)
+    with open(source_filename, encoding="utf-16") as handler:
+        header = handler.readline()
+        # print(header)
+        matches = re.match(header_pattern, header)
 
-    if matches:
-        title = matches.group("title")
-        count = matches.group("count")
-        # print(f"title={title}, count={count}")
+        if matches:
+            title = matches.group("title")
+            count = matches.group("count")
+            # print(f"title={title}, count={count}")
+        else:
+            raise ValueError("Unable to find header in given hol file")
 
-    # how do add the title to the new calendar?
+        # how do add the title to the new calendar?
 
-    # read the rest of the rows
-    events = map(line_to_event_tuple, handler.readlines())
-    write_ics_file(events, destination_filename, title)
+        print(
+            "You can try to validate the resultant file using this webform: https://icalendar.org/validator.html"
+        )
+        return title, map(line_to_event_tuple, handler.readlines())
 
-    print(
-        "You can try to validate the resultant file using this webform: https://icalendar.org/validator.html"
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="convert an outlook calendar file (.hol) to an icalendar file (.ics)"
     )
+
+    parser.add_argument("source_filename", help="outlook calendar source file (.hol)")
+
+    parser.add_argument(
+        "--dest",
+        dest="destination_filename",
+        default=None,
+        help="optional destination filename (.ics)",
+    )
+
+    args = parser.parse_args()
+
+    if not args.source_filename.lower().endswith("hol"):
+        raise ValueError("Source file has to end with the hol extension")
+
+    source_filename = args.source_filename
+
+    if args.destination_filename is not None:
+        if not args.destination_filename.lower().endswith("ics"):
+            raise ValueError("Destination file has to end with the ics extension")
+        destination_filename = args.destination_filename
+    else:
+        destination_filename = source_filename.split(".")[0] + ".ics"
+
+    print(f"Attempting to convert {source_filename} into {destination_filename}")
+
+    title, events = read_hol_file(source_filename)
+    write_ics_file(events, destination_filename, title)
