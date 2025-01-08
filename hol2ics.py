@@ -12,6 +12,11 @@ from pathlib import Path
 
 
 def line_to_event_tuple(line):
+    """Convert a given line of a hol file to an event tuple (title, date)
+
+    :param line: A single line from a hol file
+    :return: Event tuple (title, date)
+    """
     day_title, date_str = line.split(",")
     # hol does not specify timezone, I think, so we default to the local timezone of the user
     begin_datetime = datetime.datetime.strptime(
@@ -25,6 +30,12 @@ ics_datetime_format = "%Y%m%dT%H%M%S"
 
 
 def write_ics_file(events, destination_filename, title):
+    """Write an ics file from the given event map
+
+    :param events: Iterable of event tuples
+    :param destination_filename: Pathlib path to destination
+    :param title: String calendar title
+    """
     lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
@@ -57,6 +68,11 @@ def write_ics_file(events, destination_filename, title):
 
 
 def read_hol_file(source_filename):
+    """Read and unpack a hol file to an event list
+
+    :param source_filename: Pathlib path to source file
+    :return: Tuple of calendar title and associated events
+    """
     # TODO: there can be several section in a HOL file - the header and the count
     #  will tell us what to do - but do this later!
     header_pattern = r"\[(?P<title>.+)\]\s*(?P<count>[0-9]+)"
