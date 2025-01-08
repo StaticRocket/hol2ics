@@ -10,6 +10,8 @@ import re
 import uuid
 from pathlib import Path
 
+ICS_DATETIME_FORMAT = "%Y%m%dT%H%M%S"
+
 
 def line_to_event_tuple(line):
     """Convert a given line of a hol file to an event tuple (title, date)
@@ -24,9 +26,6 @@ def line_to_event_tuple(line):
     )  # .astimezone()
     # print(day_title, date_str, begin_datetime, begin_datetime.tzinfo)
     return day_title, begin_datetime
-
-
-ics_datetime_format = "%Y%m%dT%H%M%S"
 
 
 def write_ics_file(events, destination_filename, title):
@@ -44,7 +43,7 @@ def write_ics_file(events, destination_filename, title):
 
     for name, start_date in events:
         creation_time = (
-            datetime.datetime.now().astimezone().strftime(ics_datetime_format)
+            datetime.datetime.now().astimezone().strftime(ICS_DATETIME_FORMAT)
         )
         start_date = start_date.strftime("%Y%m%d")
         event_lines = [
