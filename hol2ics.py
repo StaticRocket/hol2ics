@@ -8,6 +8,7 @@ import argparse
 import datetime
 import re
 import uuid
+from pathlib import Path
 
 
 def line_to_event_tuple(line):
@@ -51,7 +52,7 @@ def write_ics_file(events, destination_filename, title):
     ics_str = "\r\n".join(lines)
 
     # finally, write to the new file
-    with open(destination_filename, "w") as out_file:
+    with destination_filename.open("w") as out_file:
         out_file.writelines(ics_str)
 
 
@@ -60,7 +61,7 @@ def read_hol_file(source_filename):
     #  will tell us what to do - but do this later!
     header_pattern = r"\[(?P<title>.+)\]\s*(?P<count>[0-9]+)"
 
-    with open(source_filename, encoding="utf-16") as handler:
+    with source_filename.open("r") as handler:
         header = handler.readline()
         # print(header)
         matches = re.match(header_pattern, header)
@@ -85,30 +86,30 @@ if __name__ == "__main__":
         description="convert an outlook calendar file (.hol) to an icalendar file (.ics)"
     )
 
-    parser.add_argument("source_filename", help="outlook calendar source file (.hol)")
+    parser.add_argument(
+        "source_path", help="outlook calendar source file (.hol)", type=Path
+    )
 
     parser.add_argument(
         "--dest",
-        dest="destination_filename",
-        default=None,
+        dest="destination_path",
         help="optional destination filename (.ics)",
+        type=Path,
     )
 
     args = parser.parse_args()
 
-    if not args.source_filename.lower().endswith("hol"):
+    if args.source_path.suffix != ".hol":
         raise ValueError("Source file has to end with the hol extension")
 
-    source_filename = args.source_filename
-
-    if args.destination_filename is not None:
-        if not args.destination_filename.lower().endswith("ics"):
+    if args.destination_path is not None:
+        if args.source_path.suffix != ".ics":
             raise ValueError("Destination file has to end with the ics extension")
-        destination_filename = args.destination_filename
+        destination_path = args.destination_path
     else:
-        destination_filename = source_filename.split(".")[0] + ".ics"
+        destination_path = args.source_path.with_suffix(".ics")
 
-    print(f"Attempting to convert {source_filename} into {destination_filename}")
+    print(f"Attempting to convert {args.source_path} into {destination_path}")
 
-    title, events = read_hol_file(source_filename)
-    write_ics_file(events, destination_filename, title)
+    title, events = read_hol_file(args.source_path)
+    write_ics_file(events, destination_path, title)
