@@ -76,7 +76,8 @@ def read_hol_file(source_filename):
         # how do add the title to the new calendar?
 
         print(
-            "You can try to validate the resultant file using this webform: https://icalendar.org/validator.html"
+            "You can try to validate the resultant file using this webform:",
+            "https://icalendar.org/validator.html",
         )
         return title, map(line_to_event_tuple, handler.readlines())
 
