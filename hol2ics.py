@@ -6,14 +6,17 @@ import re
 import uuid
 
 parser = argparse.ArgumentParser(
-    description='convert an outlook calendar file (.hol) to an icalendar file (.ics)')
+    description="convert an outlook calendar file (.hol) to an icalendar file (.ics)"
+)
 
-parser.add_argument('source_filename',
-                    help='outlook calendar source file (.hol)')
+parser.add_argument("source_filename", help="outlook calendar source file (.hol)")
 
-parser.add_argument('--dest', dest='destination_filename',
-                    default=None,
-                    help='optional destination filename (.ics)')
+parser.add_argument(
+    "--dest",
+    dest="destination_filename",
+    default=None,
+    help="optional destination filename (.ics)",
+)
 
 args = parser.parse_args()
 
@@ -31,10 +34,13 @@ else:
 
 print(f"Attempting to convert {source_filename} into {destination_filename}")
 
+
 def line_to_event_tuple(line):
     day_title, date_str = line.split(",")
     # hol does not specify timezone, I think, so we default to the local timezone of the user
-    begin_datetime = datetime.datetime.strptime(date_str.strip(), "%Y/%m/%d")#.astimezone()
+    begin_datetime = datetime.datetime.strptime(
+        date_str.strip(), "%Y/%m/%d"
+    )  # .astimezone()
     # print(day_title, date_str, begin_datetime, begin_datetime.tzinfo)
     return day_title, begin_datetime
 
@@ -50,7 +56,9 @@ def write_ics_file(events, destination_filename, title):
     ]
 
     for name, start_date in events:
-        creation_time = datetime.datetime.now().astimezone().strftime(ics_datetime_format)
+        creation_time = (
+            datetime.datetime.now().astimezone().strftime(ics_datetime_format)
+        )
         start_date = start_date.strftime("%Y%m%d")
         event_lines = [
             "BEGIN:VEVENT",
@@ -59,7 +67,7 @@ def write_ics_file(events, destination_filename, title):
             f"DTSTART;VALUE=DATE:{start_date}",
             f"SUMMARY:{name}",
             "END:VEVENT",
-            ]
+        ]
         lines += event_lines
 
     lines.append("END:VCALENDAR")
@@ -68,7 +76,7 @@ def write_ics_file(events, destination_filename, title):
     ics_str = "\r\n".join(lines)
 
     # finally, write to the new file
-    with open(destination_filename, 'w') as out_file:
+    with open(destination_filename, "w") as out_file:
         out_file.writelines(ics_str)
 
 
@@ -76,14 +84,14 @@ def write_ics_file(events, destination_filename, title):
 #  will tell us what to do - but do this later!
 header_pattern = r"\[(?P<title>.+)\]\s*(?P<count>[0-9]+)"
 
-with open(source_filename, encoding='utf-16') as handler:
+with open(source_filename, encoding="utf-16") as handler:
     header = handler.readline()
     # print(header)
     matches = re.match(header_pattern, header)
 
     if matches:
-        title = matches.group('title')
-        count = matches.group('count')
+        title = matches.group("title")
+        count = matches.group("count")
         # print(f"title={title}, count={count}")
 
     # how do add the title to the new calendar?
@@ -92,7 +100,6 @@ with open(source_filename, encoding='utf-16') as handler:
     events = map(line_to_event_tuple, handler.readlines())
     write_ics_file(events, destination_filename, title)
 
-    print("You can try to validate the resultant file using this webform: https://icalendar.org/validator.html")
-
-
-
+    print(
+        "You can try to validate the resultant file using this webform: https://icalendar.org/validator.html"
+    )
