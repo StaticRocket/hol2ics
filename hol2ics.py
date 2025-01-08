@@ -1,3 +1,9 @@
+#!/usr/bin/python
+
+"""
+Python script to convert Microsoft outlook calendar file (.hol) to .ics
+"""
+
 import argparse
 import datetime
 import re
